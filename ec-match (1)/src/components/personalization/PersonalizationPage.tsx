@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { UserProfile, Opportunity } from '../../types';
 import { curateOpportunities } from '../../services/geminiService';
-import { OpportunityCard } from '../opportunities/OpportunityCard';
+import  OpportunityCard  from '../opportunities/OpportunityCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';

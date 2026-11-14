@@ -1,0 +1,39 @@
+name: EC Match Daily Scraper
+
+# Runs the hybrid scraper once every 24 hours (daily at 00:00 UTC) and on
+# manual dispatch, keeping the Firestore `extracurriculars` collection fresh.
+on:
+  schedule:
+    - cron: '0 0 * * *'   # daily, midnight UTC
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create environment file from secrets
+        run: |
+          cat > .env.local <<EOF
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          APP_URL=${{ secrets.APP_URL || '' }}
+          EOF
+
+      - name: Run hybrid scraper
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scraper.js

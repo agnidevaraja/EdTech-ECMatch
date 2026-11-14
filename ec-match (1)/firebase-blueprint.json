@@ -57,6 +57,71 @@
         "hoursLogged": { "type": "number" },
         "impactSummary": { "type": "string" }
       }
+    },
+    "Review": {
+      "title": "Student Review",
+      "description": "One authenticated user's review & rating for an extracurricular (doc id == userId).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string", "format": "email" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "overallExperience": { "type": "number", "minimum": 1, "maximum": 5 },
+            "competitivenessPrestige": { "type": "number", "minimum": 1, "maximum": 5 },
+            "timeCommitment": { "type": "number", "minimum": 1, "maximum": 5 },
+            "mentorshipSupport": { "type": "number", "minimum": 1, "maximum": 5 },
+            "collegeAppImpact": { "type": "number", "minimum": 1, "maximum": 5 }
+          }
+        },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "yearParticipated": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "rating", "metrics", "title", "body", "yearParticipated", "createdAt"]
+    },
+    "Extracurricular": {
+      "title": "Extracurricular Opportunity",
+      "description": "A public extracurricular listing with aggregated student ratings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "format": { "type": "string", "enum": ["Online", "In-person", "Hybrid"] },
+        "cost": { "type": "string" },
+        "effortLevel": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "deadline": { "type": "string" },
+        "materials": { "type": "array", "items": { "type": "string" } },
+        "url": { "type": "string", "format": "uri" },
+        "isVerified": { "type": "boolean" },
+        "prestigeRating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "ageGroup": { "type": "string" },
+        "location": { "type": "string" },
+        "rationale": { "type": "string" },
+        "source": { "type": "string" },
+        "scrapedAt": { "type": "string", "format": "date-time" },
+        "overallRating": { "type": "number", "minimum": 0, "maximum": 5 },
+        "reviewCount": { "type": "number", "minimum": 0 },
+        "ratingBreakdown": {
+          "type": "object",
+          "properties": { "1": { "type": "number" }, "2": { "type": "number" }, "3": { "type": "number" }, "4": { "type": "number" }, "5": { "type": "number" } }
+        },
+        "avgOverallExperience": { "type": "number", "minimum": 0, "maximum": 5 },
+        "avgCompetitivenessPrestige": { "type": "number", "minimum": 0, "maximum": 5 },
+        "avgTimeCommitment": { "type": "number", "minimum": 0, "maximum": 5 },
+        "avgMentorshipSupport": { "type": "number", "minimum": 0, "maximum": 5 },
+        "avgCollegeAppImpact": { "type": "number", "minimum": 0, "maximum": 5 }
+      },
+      "required": ["id", "title", "description", "url"]
     }
   },
   "firestore": {
@@ -67,6 +132,14 @@
     "/users/{userId}/opportunities/{oppId}": {
       "schema": "UserOpportunity",
       "description": "Opportunities saved by the user."
+    },
+    "/extracurriculars/{ecId}": {
+      "schema": "Extracurricular",
+      "description": "Public extracurricular listing with aggregated rating fields."
+    },
+    "/extracurriculars/{ecId}/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "One review per authenticated user (reviewId == userId)."
     }
   }
 }

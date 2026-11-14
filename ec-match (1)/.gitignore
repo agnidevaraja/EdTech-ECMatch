@@ -6,8 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
-# Hidden Credentials 
+# Hidden Credentials (never commit)
 serviceAccountKey.json
+google_creds.json
+.env.local
 .env
 node_modules/
 __pycache__/

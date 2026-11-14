@@ -44,5 +44,69 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
       }
     }
+
+    // ===============================================================
+    // Extracurriculars & Reviews
+    // ===============================================================
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['userId', 'rating', 'metrics', 'title', 'body', 'yearParticipated', 'createdAt'])
+        && data.userId is string
+        && data.rating is number && data.rating >= 1 && data.rating <= 5
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.body is string && data.body.size() <= 2000
+        && data.yearParticipated is string
+        && data.metrics is map
+        && data.metrics.overallExperience is number && data.metrics.overallExperience >= 1 && data.metrics.overallExperience <= 5
+        && data.metrics.competitivenessPrestige is number && data.metrics.competitivenessPrestige >= 1 && data.metrics.competitivenessPrestige <= 5
+        && data.metrics.timeCommitment is number && data.metrics.timeCommitment >= 1 && data.metrics.timeCommitment <= 5
+        && data.metrics.mentorshipSupport is number && data.metrics.mentorshipSupport >= 1 && data.metrics.mentorshipSupport <= 5
+        && data.metrics.collegeAppImpact is number && data.metrics.collegeAppImpact >= 1 && data.metrics.collegeAppImpact <= 5
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Clients may only touch the aggregated rating fields on a listing; every
+    // other listing field must remain identical (the server-side scraper owns
+    // listings via the service account and bypasses rules).
+    function onlyRatingFieldsChanged() {
+      return request.resource.data.title == resource.data.title
+        && request.resource.data.description == resource.data.description
+        && request.resource.data.subject == resource.data.subject
+        && request.resource.data.topic == resource.data.topic
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.ageGroup == resource.data.ageGroup
+        && request.resource.data.format == resource.data.format
+        && request.resource.data.cost == resource.data.cost
+        && request.resource.data.effortLevel == resource.data.effortLevel
+        && request.resource.data.deadline == resource.data.deadline
+        && request.resource.data.url == resource.data.url
+        && request.resource.data.isVerified == resource.data.isVerified
+        && request.resource.data.prestigeRating == resource.data.prestigeRating;
+    }
+
+    match /extracurriculars/{ecId} {
+      // Anyone can read public listings and ratings.
+      allow read: if true;
+      // Authenticated users may update ONLY aggregated rating fields.
+      allow update: if isAuthenticated() && onlyRatingFieldsChanged();
+      // Creating/deleting listings is reserved for the server-side scraper.
+      allow create, delete: if false;
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated()
+          && request.auth.uid == reviewId
+          && request.auth.uid == request.resource.data.userId
+          && isValidReview(request.resource.data);
+        allow update: if isAuthenticated()
+          && request.auth.uid == reviewId
+          && resource.data.userId == request.auth.uid
+          && isValidReview(request.resource.data);
+        allow delete: if isAuthenticated()
+          && request.auth.uid == reviewId
+          && resource.data.userId == request.auth.uid;
+      }
+    }
   }
 }
